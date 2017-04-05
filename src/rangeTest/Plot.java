@@ -133,7 +133,8 @@ public class Plot {
 			
 
 //			if(!isApproxEqual(locTime, rssiTime))
-				callibrate(rssiReader, locReader);
+
+			callibrate(rssiReader, locReader);
 			
 			rssiLine = rssiReader.readNext();
 			
