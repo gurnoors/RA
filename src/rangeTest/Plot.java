@@ -1,6 +1,9 @@
 package rangeTest;
 
 import java.util.List;
+
+import javax.swing.tree.DefaultTreeCellEditor.EditorContainer;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -27,11 +30,11 @@ import com.opencsv.CSVWriter;
 
 public class Plot {
 	private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_INSTANT;
-	private static final long ROUND_TIME = 20000000000l;
+	private static final long ROUND_TIME = 100000000l;
 	private static final String BASE_DIR = "/Users/gurnoorsinghbhatia/Documents/code/sem2/ra/rangeTest/concLogs/fiddle";
 
 	private class Loc {
-		public Loc(double lat, double lon) {
+		public Loc(double lat, double lon, double elev) {
 			super();
 			this.lat = lat;
 			this.lon = lon;
@@ -49,6 +52,7 @@ public class Plot {
 		String opFile = BASE_DIR + "/opFile.csv";
 		new File(opFile).createNewFile();
 		Plot plotObj = new Plot();
+		
 		plotObj.plot(rssiFile, locFile, opFile);
 	}
 
@@ -61,8 +65,8 @@ public class Plot {
 	 */
 	private void plot(String rssiFile, String locFile, String opFile) throws IOException {
 		boolean eof = false;
-		Loc concentratorLoc = this.new Loc(0, 0);
-		Loc nodeLoc = this.new Loc(0, 0);
+		Loc concentratorLoc = this.new Loc(0,0,0);
+		Loc nodeLoc = this.new Loc(0, 0, 0);
 
 		CSVReader rssiReader = new CSVReader(new FileReader(rssiFile));
 		// time,lat,lon,elevation
@@ -108,12 +112,18 @@ public class Plot {
 //			rssiLine = rssiReader.readNext();
 //
 //			// debug
-			System.out.println("distance: " + String.valueOf(dist));
+//			System.out.println("distance: " + String.valueOf(dist));
 //			if(locLine != null && rssiLine !=null){
 //				LocalDateTime locTime = parseTimeUTC(locLine[0]);
-//				LocalDateTime rssiTime = parseTime(rssiLine[5], locTime);
+//				try{
+//					LocalDateTime rssiTime = parseTime(rssiLine[5], locTime);
+//					System.out.println("RSSI time: "+rssiTime);
+//				}catch (java.time.format.DateTimeParseException e) {
+//				e.printStackTrace();
+//				}
+//				
 //				System.out.println("locationTime: "+locTime);
-//				System.out.println("RSSI time: "+rssiTime);
+//				
 //			}
 //			System.out.println("-------------\n");
 
@@ -121,18 +131,20 @@ public class Plot {
 			
 			locLine = locReader.readNext();
 			
-//			LocalDateTime locTime = parseTimeUTC(locLine[0]);
-//			LocalDateTime rssiTime = parseTime(rssiLine[5], locTime);
+
 //			if(!isApproxEqual(locTime, rssiTime))
 				callibrate(rssiReader, locReader);
 			
 			rssiLine = rssiReader.readNext();
 			
+//			LocalDateTime locTime = parseTimeUTC(locLine[0]);
+//			LocalDateTime rssiTime = parseTime(rssiLine[5], locTime);
+//			
 			
 			
 		}
 
-		XYChart chart = QuickChart.getChart("RSSI Vs distance", "distance", "RSSI", "rssi", xData, yData);
+		XYChart chart = QuickChart.getChart("RSSI Vs distance", "distance (in metres)", "RSSI (in dBm)", "rssi", xData, yData);
 		new SwingWrapper(chart).displayChart();
 
 	}
@@ -162,25 +174,34 @@ public class Plot {
 		while (locLine != null && rssiLine != null) {
 			rssiTime = parseTime(rssiLine[5], locTime);
 			locTime = parseTimeUTC(locLine[0]);
-
-			// if(locTime.isAfter(parseTime("20:54:00", locTime))){
-			// System.out.println("Hi");
-			// }
+			System.out.println("RSSI time: "+ rssiTime);
+			System.out.println("Loc Time: "+locTime);
 
 			if (isApproxEqual(locTime, rssiTime)) {
+				System.out.println("End Callibration------");
 				return;
+				
 			} else if (isLocStartTimeEarlier) {
-				if (locTime.isAfter(rssiTime.plusNanos(ROUND_TIME)))
+				if (locTime.isAfter(rssiTime.plusNanos(ROUND_TIME))){
+					System.out.println("End Callibration------");
 					return;
+				}
+				System.out.println("incrementing locReader");
 				locLine = locReader.readNext();
 			} else {
-				if (rssiTime.isAfter(locTime.plusNanos(ROUND_TIME)))
+				if (rssiTime.isAfter(locTime.plusNanos(ROUND_TIME))){
+					System.out.println("End Callibration------");
 					return;
+				}
+				System.out.println("Incrementing rssiReader");
 				rssiReader.readNext();// 1 reading is on 2 lines
 				rssiLine = rssiReader.readNext();
 			}
+			
+			
 		}
 		
+		System.out.println("End Callibration------");
 	}
 
 	private double calculateDistance(Loc concentratorLoc, Loc nodeLoc) {
