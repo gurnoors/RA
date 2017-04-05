@@ -134,9 +134,11 @@ public class Plot {
 
 //			if(!isApproxEqual(locTime, rssiTime))
 
-			callibrate(rssiReader, locReader);
+//			callibrate(rssiReader, locReader);
 			
+			rssiReader.readNext();
 			rssiLine = rssiReader.readNext();
+			
 			
 //			LocalDateTime locTime = parseTimeUTC(locLine[0]);
 //			LocalDateTime rssiTime = parseTime(rssiLine[5], locTime);
