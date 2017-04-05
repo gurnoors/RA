@@ -32,6 +32,9 @@ public class Plot {
 	private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_INSTANT;
 	private static final long ROUND_TIME = 100000000l;
 	private static final String BASE_DIR = "/Users/gurnoorsinghbhatia/Documents/code/sem2/ra/rangeTest/concLogs/fiddle";
+	private static final String rssiFile = BASE_DIR + "/rssi_time.csv";
+	private static final String locFile = BASE_DIR + "/location.csv";
+	private static final String opFile = BASE_DIR + "/opFile.csv";
 
 	private class Loc {
 		public Loc(double lat, double lon, double elev) {
@@ -47,9 +50,7 @@ public class Plot {
 	}
 
 	public static void main(String[] args) throws IOException {
-		String rssiFile = BASE_DIR + "/rssi_time.csv";
-		String locFile = BASE_DIR + "/location.csv";
-		String opFile = BASE_DIR + "/opFile.csv";
+		
 		new File(opFile).createNewFile();
 		Plot plotObj = new Plot();
 		
@@ -72,13 +73,14 @@ public class Plot {
 		// time,lat,lon,elevation
 		CSVReader locReader = new CSVReader(new FileReader(locFile));
 
-		// CSVWriter writer = new CSVWriter(new FileWriter(opFile));
 		String[] locLine = locReader.readNext();
 		String[] rssiLine = rssiReader.readNext();
 
 		System.out.println(locLine[0] + ", " + locLine[1] + ", " + locLine[2] + ", " + locLine[3]);
 		// NOTE: calling callibrate in loop will skip alternate lines unless u
 		// return the lines just read.
+		//alternatively, just read all initially, then pass around the read lists.
+		
 		callibrate(rssiReader, locReader);
 		locLine = locReader.readNext();
 		rssiLine = rssiReader.readNext();
